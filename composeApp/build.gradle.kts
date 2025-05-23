@@ -1,19 +1,17 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    // causes version issues: alias(libs.plugins.androidApplication)
+    id(libs.plugins.androidApplication.get().pluginId)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
     
@@ -27,9 +25,10 @@ kotlin {
             isStatic = true
         }
     }
-    
+
+    task("testClasses")
+
     sourceSets {
-        
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -43,6 +42,8 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation("kmpgl:kmpgl-core:1.0")
+            implementation("kmpgl:kmpgl-compose:1.0")
         }
     }
 }
@@ -51,9 +52,11 @@ android {
     namespace = "edu.moravian.kmpgl.demo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+    sourceSets["main"].apply {
+        manifest.srcFile("src/androidMain/AndroidManifest.xml")
+        res.srcDirs("src/androidMain/res", "src/commonMain/resources/res")
+        assets.srcDirs("src/commonMain/resources/assets")
+    }
 
     defaultConfig {
         applicationId = "edu.moravian.kmpgl.demo"
@@ -73,8 +76,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
@@ -82,5 +85,13 @@ android {
     dependencies {
         debugImplementation(compose.uiTooling)
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
 }
 
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "kmpgl_demo.resources"
+    generateResClass = always
+}

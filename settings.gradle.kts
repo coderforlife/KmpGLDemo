@@ -28,4 +28,10 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("library") {
+    dependencySubstitution {
+        substitute(module("kmpgl:kmpgl-core")).using(project(":kmpgl-core"))
+        substitute(module("kmpgl:kmpgl-compose")).using(project(":kmpgl-compose"))
+    }
+}
 include(":composeApp")
