@@ -25,7 +25,7 @@ import kotlin.math.min
 //      followed by that many shorts (technically unsigned shorts)
 // Can be big-endian or little-endian (determined by the first 2 bytes being 0x00 0x00)
 // Even though the number of vertices is an integer, the max number of vertices is
-//      limited to 65535 (2^16-1) because the indices are shorts.
+//      limited to 65536 because the indices are (unsigned) shorts.
 // The big-endian format is generally less preferable as it requires extra work on most
 //      platforms.
 
@@ -43,24 +43,29 @@ suspend fun loadVAOAsync(data: ByteArray) = loadVAOFromChannel(ByteReadChannel(d
  */
 fun CoroutineScope.loadVAOFromURL(url: String) = loadVAOFromURL(url, defaultClient)
 
-fun CoroutineScope.loadVAOFromURL(url: String, client: HttpClient): Deferred<Geometry> = async {
-    // TODO: handle errors (currently they just crash the entire app?)
-    client.prepareGet(url).execute { httpResponse -> loadVAOFromChannel(httpResponse.body()) }
+fun CoroutineScope.loadVAOFromURL(url: String, client: HttpClient): Deferred<Geometry?> = async {
+    try {
+        client.prepareGet(url).execute { httpResponse -> loadVAOFromChannel(httpResponse.body()) }
+    } catch (e: Exception) { // if the error is not handled here, it will crash the app
+        println("Error loading mesh from URL $url: ${e.message}")
+        null
+    }
 }
 
-suspend fun ModelViewer.loadVAOModelsFromURLs(urls: Collection<String>) {
+suspend fun ModelViewer.loadVAOModelsFromURLs(urls: Collection<String>) =
     loadVAOModelsFromURLs(urls, defaultClient)
-}
 
 suspend fun ModelViewer.loadVAOModelsFromURLs(urls: Collection<String>, client: HttpClient) = coroutineScope {
     val deferred = urls.map { url -> loadVAOFromURL(url, client) }
+    var n = 0
     for ((url, def) in urls.zip(deferred)) {
         try {
-            addMesh(def.await())
+            def.await()?.let { addMesh(it); n++ }
         } catch (e: Exception) {
-            println("Error loading mesh from URL $url: ${e.message}")
+            println("Error loading mesh from URL $url: ${e.message}") // not actually reachable
         }
     }
+    n
 }
 
 
@@ -68,11 +73,15 @@ private suspend fun loadVAOFromChannel(channel: ByteReadChannel): Geometry {
     if (!channel.awaitContent(2*Int.SIZE_BYTES)) { throw RuntimeException("no data") }
     val header = channel.peek(2*Int.SIZE_BYTES) ?: throw RuntimeException("no data")
     if (header[0] == 0x1F.toByte() && header[1] == 0x8B.toByte() && header[2] == 0x08.toByte()) {
-        // Gzip compressed data - decompress it
+        // gzip compressed data - decompress it
         return loadVAOFromChannel(GZipEncoder.decode(channel, currentCoroutineContext()))
     }
     channel.discardExact(2L*Int.SIZE_BYTES)
-    val isBigEndian = header[0] == 0x00.toByte() && header[1] == 0x00.toByte()
+
+    // when there is 00 01 00 00 assume it is big endian (65536) instead of little endian (256)
+    val isBigEndian = header[0] == 0x00.toByte() && header[1] == 0x00.toByte() || (
+            header[0] == 0x00.toByte() && header[1] == 0x01.toByte() && header[2] == 0x00.toByte() && header[3] == 0x00.toByte()
+            )
     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
     return if (isBigEndian) {
         val numVerts = header.readIntBE(0)
