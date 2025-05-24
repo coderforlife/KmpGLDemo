@@ -86,11 +86,7 @@ class ModelViewer(
     /////////////// Camera Setup ///////////////
     // The view matrix is uploaded every render()
     private var uViewMatrix = GLUniformLocation.NULL
-    val viewMatrix = Matrix4().copy(OrbitControlsState.ISOMETRIC_VIEW)
-    fun setViewToIsometric() {
-        @Suppress("UnusedDataClassCopyResult")
-        viewMatrix.copy(OrbitControlsState.ISOMETRIC_VIEW)
-    }
+    fun resetView() { controls.reset() }
     private var uProjectionMatrix = GLUniformLocation.NULL
     private val projectionMatrix = Matrix4()
     var width: Int = 0; private set

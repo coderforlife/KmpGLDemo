@@ -43,6 +43,7 @@ import kotlin.math.abs
 interface ViewControlsState {
     val viewMatrix: Matrix4
     fun update(): Matrix4
+    fun reset()
 }
 
 // This is explicitly not using mutable states since the changes happen extremely rapidly
@@ -67,6 +68,12 @@ data class OrbitControlsState(
 
     override fun update() =
         viewMatrix.compose(position, quat.setFromEuler(rotation), scale).multiply(ISOMETRIC_VIEW)
+
+    override fun reset() {
+        position.set(0f, 0f, 0f)
+        rotation.set(0f, 0f, 0f)
+        scale.set(1f, 1f, 1f)
+    }
 
     companion object {
         private val CAMERA_ISOMETRIC_POS = Vector3(-1f, -1f, 1f)
@@ -97,7 +104,7 @@ data class OrbitControlsState(
 fun Modifier.orbitControls(state: OrbitControlsState, viewModel: GLViewModel) = this.pointerInput(Unit) {
     detectTransformGestures(
         onGesture = { _, pan, panMulti, zoom, rotate ->
-            println("onGesture: pan: $pan, panMulti: $panMulti, zoom: $zoom, rotate: $rotate")
+            //println("onGesture: pan: $pan, panMulti: $panMulti, zoom: $zoom, rotate: $rotate")
             state.scale *= zoom
             if (panMulti != Offset.Zero) {
                 state.position.x += panMulti.x * 2f / viewModel.width
