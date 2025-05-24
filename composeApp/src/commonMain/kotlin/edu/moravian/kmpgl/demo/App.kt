@@ -35,6 +35,7 @@ import edu.moravian.kmpgl.compose.rememberOrbitControlsState
 @Preview
 fun App() {
     MaterialTheme {
+        var loaded by remember { mutableStateOf(false) }
         val controls = rememberOrbitControlsState()
         //val context = getContext()
         val modelViewer = remember { ModelViewer(controls) }
@@ -47,20 +48,26 @@ fun App() {
             //if (data != null) { modelViewer.addMesh(loadVAOAsync(data)) }
             modelViewer.loadVAOModelsFromURLs(urls)
             modelViewer.doneAddingMeshes()
+            loaded = true
         }
+
+        val baseMod = Modifier
+            .size(350.dp, 400.dp)  //.fillMaxSize()
+            .border(1.dp, Color.Green, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10.dp))
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            GLView(
-                viewModel = viewModel,
-                modifier = Modifier
-                    .size(350.dp, 400.dp)  //.fillMaxSize()
-                    .border(1.dp, Color.Green, RoundedCornerShape(10.dp))
-                    .clip(RoundedCornerShape(10.dp))
-                    .orbitControls(controls, viewModel),
-            )
+            if (!loaded) {
+                Text("Loading...", baseMod)
+            } else {
+                GLView(
+                    viewModel = viewModel,
+                    modifier = baseMod.orbitControls(controls, viewModel),
+                )
+            }
             Spacer(Modifier.height(4.dp))
             Text("Model Viewer", color = Color.Red)
         }
