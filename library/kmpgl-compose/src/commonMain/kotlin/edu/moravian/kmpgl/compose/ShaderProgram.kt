@@ -60,7 +60,7 @@ class ShaderProgram(
             gl.deleteProgram(program)
             throw IllegalArgumentException("Program failed to link")
         }
-        dispose(gl)
+        //dispose(gl)
         this.program = program
     }
 
@@ -72,7 +72,6 @@ class ShaderProgram(
 
     /** Delete the program and set the current program to NULL if it is this program. */
     private fun delete(gl: GLContext) {
-        println("Deleting program $program")
         if (isValid(gl)) {
             if (gl.currentProgram == program) {
                 gl.useProgram(GLProgram.NULL)
@@ -116,7 +115,7 @@ class Shader(val type: Int, val source: String): Disposable {
             gl.deleteShader(shader)
             throw IllegalArgumentException("Shader failed to compile")
         }
-        dispose(gl)
+        //dispose(gl)
         this.shader = shader
     }
 
