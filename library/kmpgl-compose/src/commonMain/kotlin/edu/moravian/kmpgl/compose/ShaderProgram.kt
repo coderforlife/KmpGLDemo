@@ -8,7 +8,9 @@ import edu.moravian.kmpgl.core.GLListener
 import edu.moravian.kmpgl.core.GLProgram
 import edu.moravian.kmpgl.core.GLShader
 import edu.moravian.kmpgl.core.currentProgram
+import edu.moravian.kmpgl.core.isProgram
 import edu.moravian.kmpgl.core.isSet
+import edu.moravian.kmpgl.core.isShader
 
 private val logger = Logger.withTag("ShaderProgram")
 
@@ -38,17 +40,27 @@ class ShaderProgram(
         link(gl)
     }
 
+    override fun recreate(gl: GLContext) {
+        dispose(gl)
+        create(gl)
+    }
+
     private fun link(gl: GLContext) {
+        if (isValid(gl)) {
+            logger.w { "Program is already linked. Skipping..." }
+            return
+        }
         val program = gl.createProgram()
         for (s in shaders) { gl.attachShader(program, s.shader) }
         gl.linkProgram(program)
         if (gl.getProgramInt(program, GL.LINK_STATUS) == 0) {
-        logger.e { "Program failed to link. The error log is:" }
-        logger.e { gl.getProgramInfoLog(program) }
+            logger.e { "Program failed to link. The error log is:" }
+            logger.e { gl.getProgramInfoLog(program) }
+            dispose(gl)
             gl.deleteProgram(program)
             throw IllegalArgumentException("Program failed to link")
         }
-        delete(gl)
+        dispose(gl)
         this.program = program
     }
 
@@ -60,7 +72,8 @@ class ShaderProgram(
 
     /** Delete the program and set the current program to NULL if it is this program. */
     private fun delete(gl: GLContext) {
-        if (program.isSet) {
+        println("Deleting program $program")
+        if (isValid(gl)) {
             if (gl.currentProgram == program) {
                 gl.useProgram(GLProgram.NULL)
             }
@@ -69,7 +82,12 @@ class ShaderProgram(
         program = GLProgram.NULL
     }
 
-    inline fun use(gl: GLContext) { gl.useProgram(program) }
+    private inline fun isValid(gl: GLContext) = program.isSet && gl.isProgram(program)
+
+    fun use(gl: GLContext) {
+        if (!isValid(gl)) { create(gl) }
+        gl.useProgram(program)
+    }
     inline fun getAttribLocation(gl: GLContext, name: String) = gl.getAttribLocation(program, name)
     inline fun getUniformLocation(gl: GLContext, name: String) = gl.getUniformLocation(program, name)
 }
@@ -85,6 +103,10 @@ class Shader(val type: Int, val source: String): Disposable {
     var shader = GLShader.NULL; private set
 
     fun compile(gl: GLContext) {
+        if (this.shader.isSet && gl.isShader(this.shader)) {
+            logger.w { "Shader is already compiled. Skipping..." }
+            return
+        }
         val shader = gl.createShader(type)
         gl.shaderSource(shader, source)
         gl.compileShader(shader)
@@ -99,7 +121,7 @@ class Shader(val type: Int, val source: String): Disposable {
     }
 
     override fun dispose(gl: GLContext) {
-        if (this.shader.isSet) { gl.deleteShader(this.shader) }
-        this.shader = GLShader.NULL
+        if (shader.isSet && gl.isShader(shader)) { gl.deleteShader(shader) }
+        shader = GLShader.NULL
     }
 }
