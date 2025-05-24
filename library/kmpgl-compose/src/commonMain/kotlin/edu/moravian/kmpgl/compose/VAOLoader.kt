@@ -5,14 +5,18 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.prepareGet
+import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.readByteArray
+import io.ktor.utils.io.discardExact
+import io.ktor.utils.io.peek
 import io.ktor.utils.io.readFully
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.bytestring.ByteString
 import kotlin.math.min
 
 // VAO File Format:
@@ -62,7 +66,12 @@ suspend fun ModelViewer.loadVAOModelsFromURLs(urls: Collection<String>, client: 
 
 private suspend fun loadVAOFromChannel(channel: ByteReadChannel): Geometry {
     if (!channel.awaitContent(2*Int.SIZE_BYTES)) { throw RuntimeException("no data") }
-    val header = channel.readByteArray(2*Int.SIZE_BYTES)
+    val header = channel.peek(2*Int.SIZE_BYTES) ?: throw RuntimeException("no data")
+    if (header[0] == 0x1F.toByte() && header[1] == 0x8B.toByte() && header[2] == 0x08.toByte()) {
+        // Gzip compressed data - decompress it
+        return loadVAOFromChannel(GZipEncoder.decode(channel, currentCoroutineContext()))
+    }
+    channel.discardExact(2L*Int.SIZE_BYTES)
     val isBigEndian = header[0] == 0x00.toByte() && header[1] == 0x00.toByte()
     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
     return if (isBigEndian) {
@@ -161,5 +170,7 @@ private fun ByteArray.readShortBE(index: Int) = (this[index+1].toInt() and 0xFF 
 private fun ByteArray.readShortLE(index: Int) = (this[index].toInt() and 0xFF or (this[index+1].toInt() and 0xFF shl 8)).toShort()
 private fun ByteArray.readIntBE(index: Int) = (this[index+3].toInt() and 0xFF) or (this[index+2].toInt() and 0xFF shl 8) or (this[index+1].toInt() and 0xFF shl 16) or (this[index].toInt() and 0xFF shl 24)
 private fun ByteArray.readIntLE(index: Int) = (this[index].toInt() and 0xFF) or (this[index+1].toInt() and 0xFF shl 8) or (this[index+2].toInt() and 0xFF shl 16) or (this[index+3].toInt() and 0xFF shl 24)
+private fun ByteString.readIntBE(index: Int) = (this[index+3].toInt() and 0xFF) or (this[index+2].toInt() and 0xFF shl 8) or (this[index+1].toInt() and 0xFF shl 16) or (this[index].toInt() and 0xFF shl 24)
+private fun ByteString.readIntLE(index: Int) = (this[index].toInt() and 0xFF) or (this[index+1].toInt() and 0xFF shl 8) or (this[index+2].toInt() and 0xFF shl 16) or (this[index+3].toInt() and 0xFF shl 24)
 private fun ByteArray.readFloatBE(index: Int) = Float.fromBits(readIntBE(index))
 private fun ByteArray.readFloatLE(index: Int) = Float.fromBits(readIntLE(index))
