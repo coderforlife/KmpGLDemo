@@ -5,7 +5,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.prepareGet
-import io.ktor.util.GZipEncoder
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.discardExact
 import io.ktor.utils.io.peek
@@ -14,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.bytestring.ByteString
 import kotlin.math.min
@@ -74,7 +72,7 @@ private suspend fun loadVAOFromChannel(channel: ByteReadChannel): Geometry {
     val header = channel.peek(2*Int.SIZE_BYTES) ?: throw RuntimeException("no data")
     if (header[0] == 0x1F.toByte() && header[1] == 0x8B.toByte() && header[2] == 0x08.toByte()) {
         // gzip compressed data - decompress it
-        return loadVAOFromChannel(GZipEncoder.decode(channel, currentCoroutineContext()))
+        return loadVAOFromChannel(gzipDecodedChannel(channel))
     }
     channel.discardExact(2L*Int.SIZE_BYTES)
 
@@ -175,11 +173,13 @@ private var defaultClient = HttpClient {
     }
 }
 
-private fun ByteArray.readShortBE(index: Int) = (this[index+1].toInt() and 0xFF or (this[index].toInt() and 0xFF shl 8)).toShort()
-private fun ByteArray.readShortLE(index: Int) = (this[index].toInt() and 0xFF or (this[index+1].toInt() and 0xFF shl 8)).toShort()
-private fun ByteArray.readIntBE(index: Int) = (this[index+3].toInt() and 0xFF) or (this[index+2].toInt() and 0xFF shl 8) or (this[index+1].toInt() and 0xFF shl 16) or (this[index].toInt() and 0xFF shl 24)
-private fun ByteArray.readIntLE(index: Int) = (this[index].toInt() and 0xFF) or (this[index+1].toInt() and 0xFF shl 8) or (this[index+2].toInt() and 0xFF shl 16) or (this[index+3].toInt() and 0xFF shl 24)
-private fun ByteString.readIntBE(index: Int) = (this[index+3].toInt() and 0xFF) or (this[index+2].toInt() and 0xFF shl 8) or (this[index+1].toInt() and 0xFF shl 16) or (this[index].toInt() and 0xFF shl 24)
-private fun ByteString.readIntLE(index: Int) = (this[index].toInt() and 0xFF) or (this[index+1].toInt() and 0xFF shl 8) or (this[index+2].toInt() and 0xFF shl 16) or (this[index+3].toInt() and 0xFF shl 24)
-private fun ByteArray.readFloatBE(index: Int) = Float.fromBits(readIntBE(index))
-private fun ByteArray.readFloatLE(index: Int) = Float.fromBits(readIntLE(index))
+internal expect suspend fun gzipDecodedChannel(source: ByteReadChannel): ByteReadChannel
+
+internal fun ByteArray.readShortBE(index: Int) = (this[index+1].toInt() and 0xFF or (this[index].toInt() and 0xFF shl 8)).toShort()
+internal fun ByteArray.readShortLE(index: Int) = (this[index].toInt() and 0xFF or (this[index+1].toInt() and 0xFF shl 8)).toShort()
+internal fun ByteArray.readIntBE(index: Int) = (this[index+3].toInt() and 0xFF) or (this[index+2].toInt() and 0xFF shl 8) or (this[index+1].toInt() and 0xFF shl 16) or (this[index].toInt() and 0xFF shl 24)
+internal fun ByteArray.readIntLE(index: Int) = (this[index].toInt() and 0xFF) or (this[index+1].toInt() and 0xFF shl 8) or (this[index+2].toInt() and 0xFF shl 16) or (this[index+3].toInt() and 0xFF shl 24)
+internal fun ByteString.readIntBE(index: Int) = (this[index+3].toInt() and 0xFF) or (this[index+2].toInt() and 0xFF shl 8) or (this[index+1].toInt() and 0xFF shl 16) or (this[index].toInt() and 0xFF shl 24)
+internal fun ByteString.readIntLE(index: Int) = (this[index].toInt() and 0xFF) or (this[index+1].toInt() and 0xFF shl 8) or (this[index+2].toInt() and 0xFF shl 16) or (this[index+3].toInt() and 0xFF shl 24)
+internal fun ByteArray.readFloatBE(index: Int) = Float.fromBits(readIntBE(index))
+internal fun ByteArray.readFloatLE(index: Int) = Float.fromBits(readIntLE(index))
