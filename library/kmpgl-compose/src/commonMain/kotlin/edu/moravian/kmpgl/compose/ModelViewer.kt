@@ -231,13 +231,13 @@ class ModelViewer(
         }
     }
 
-
-    // override fun pause(gl: GLContext) { }
-    // override fun resume(gl: GLContext) { }
+    override fun pause(gl: GLContext) { logger.i { "pause()" } }
+    override fun resume(gl: GLContext) { logger.i { "resume()" } }
 
     override fun dispose(gl: GLContext) {
         logger.i { "dispose()" }
         meshes.forEach { it.dispose(gl) }
+        _meshes.clear()
         // TODO: grid.dispose()
         program.dispose(gl)
     }
