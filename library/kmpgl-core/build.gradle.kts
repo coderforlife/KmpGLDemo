@@ -19,6 +19,20 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.compilations.forEach {
+            it.cinterops {
+                val angle by creating {
+                    packageName("angle")
+                }
+            }
+        }
+    }
+
     task("testClasses")
 
     sourceSets {

@@ -13,7 +13,26 @@
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		D86E39392C78310500F9D26C /* iosMain in Resources */ = {isa = PBXBuildFile; fileRef = D86E39372C78310500F9D26C /* iosMain */; };
 		D86E393A2C78310500F9D26C /* commonMain in Resources */ = {isa = PBXBuildFile; fileRef = D86E39382C78310500F9D26C /* commonMain */; };
+		D8E06D642DE755AE00EF3B91 /* libEGL.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */; };
+		D8E06D652DE755AE00EF3B91 /* libEGL.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D8E06D672DE755AF00EF3B91 /* libGLESv2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */; };
+		D8E06D682DE755AF00EF3B91 /* libGLESv2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D8E06D662DE755AE00EF3B91 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				D8E06D682DE755AF00EF3B91 /* libGLESv2.xcframework in Embed Frameworks */,
+				D8E06D652DE755AE00EF3B91 /* libEGL.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -25,6 +44,8 @@
 		AB3632DC29227652001CCB65 /* Config.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		D86E39372C78310500F9D26C /* iosMain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = iosMain; path = "../../library/kmpgl-core/src/iosMain"; sourceTree = "<group>"; };
 		D86E39382C78310500F9D26C /* commonMain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = commonMain; path = "../../library/kmpgl-core/src/commonMain"; sourceTree = "<group>"; };
+		D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libEGL.xcframework; path = ../library/libEGL.xcframework; sourceTree = SOURCE_ROOT; };
+		D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libGLESv2.xcframework; path = ../library/libGLESv2.xcframework; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +53,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8E06D672DE755AF00EF3B91 /* libGLESv2.xcframework in Frameworks */,
+				D8E06D642DE755AE00EF3B91 /* libEGL.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -49,6 +72,8 @@
 		42799AB246E5F90AF97AA0EF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */,
+				D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -112,6 +137,7 @@
 				7555FF77242A565900829871 /* Sources */,
 				B92378962B6B1156000C7307 /* Frameworks */,
 				7555FF79242A565900829871 /* Resources */,
+				D8E06D662DE755AE00EF3B91 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -339,7 +365,9 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\n$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../library",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
@@ -366,7 +394,9 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\n$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../library",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
