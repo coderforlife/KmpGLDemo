@@ -26,8 +26,6 @@ kotlin {
         }
     }
 
-    task("testClasses")
-
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
