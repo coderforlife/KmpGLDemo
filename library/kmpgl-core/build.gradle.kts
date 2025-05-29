@@ -15,25 +15,16 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
 
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        iosTarget.compilations.forEach {
-            it.cinterops {
-                val angle by creating {
-                    packageName("angle")
-                }
-            }
+        iosTarget.compilations.all {
+            val angle by cinterops.creating { packageName("angle") }
         }
     }
-
-    task("testClasses")
 
     sourceSets {
         val commonMain by getting {

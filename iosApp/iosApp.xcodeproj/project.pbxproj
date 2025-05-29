@@ -13,10 +13,10 @@
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		D86E39392C78310500F9D26C /* iosMain in Resources */ = {isa = PBXBuildFile; fileRef = D86E39372C78310500F9D26C /* iosMain */; };
 		D86E393A2C78310500F9D26C /* commonMain in Resources */ = {isa = PBXBuildFile; fileRef = D86E39382C78310500F9D26C /* commonMain */; };
-		D8E06D642DE755AE00EF3B91 /* libEGL.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */; };
-		D8E06D652DE755AE00EF3B91 /* libEGL.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		D8E06D672DE755AF00EF3B91 /* libGLESv2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */; };
-		D8E06D682DE755AF00EF3B91 /* libGLESv2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D8E06D762DE8D31800EF3B91 /* libEGL.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D722DE8D31000EF3B91 /* libEGL.xcframework */; };
+		D8E06D772DE8D31800EF3B91 /* libEGL.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D722DE8D31000EF3B91 /* libEGL.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D8E06D782DE8D31900EF3B91 /* libGLESv2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D732DE8D31000EF3B91 /* libGLESv2.xcframework */; };
+		D8E06D792DE8D31900EF3B91 /* libGLESv2.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D8E06D732DE8D31000EF3B91 /* libGLESv2.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,8 +26,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				D8E06D682DE755AF00EF3B91 /* libGLESv2.xcframework in Embed Frameworks */,
-				D8E06D652DE755AE00EF3B91 /* libEGL.xcframework in Embed Frameworks */,
+				D8E06D792DE8D31900EF3B91 /* libGLESv2.xcframework in Embed Frameworks */,
+				D8E06D772DE8D31800EF3B91 /* libEGL.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -44,8 +44,8 @@
 		AB3632DC29227652001CCB65 /* Config.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		D86E39372C78310500F9D26C /* iosMain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = iosMain; path = "../../library/kmpgl-core/src/iosMain"; sourceTree = "<group>"; };
 		D86E39382C78310500F9D26C /* commonMain */ = {isa = PBXFileReference; lastKnownFileType = folder; name = commonMain; path = "../../library/kmpgl-core/src/commonMain"; sourceTree = "<group>"; };
-		D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libEGL.xcframework; path = ../library/libEGL.xcframework; sourceTree = SOURCE_ROOT; };
-		D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libGLESv2.xcframework; path = ../library/libGLESv2.xcframework; sourceTree = SOURCE_ROOT; };
+		D8E06D722DE8D31000EF3B91 /* libEGL.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libEGL.xcframework; path = /Users/bushj/AndroidStudioProjects/3DAdaptApp/KmpGLDemo/library/libEGL.xcframework; sourceTree = "<absolute>"; };
+		D8E06D732DE8D31000EF3B91 /* libGLESv2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libGLESv2.xcframework; path = /Users/bushj/AndroidStudioProjects/3DAdaptApp/KmpGLDemo/library/libGLESv2.xcframework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,8 +53,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D8E06D672DE755AF00EF3B91 /* libGLESv2.xcframework in Frameworks */,
-				D8E06D642DE755AE00EF3B91 /* libEGL.xcframework in Frameworks */,
+				D8E06D782DE8D31900EF3B91 /* libGLESv2.xcframework in Frameworks */,
+				D8E06D762DE8D31800EF3B91 /* libEGL.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,8 +72,8 @@
 		42799AB246E5F90AF97AA0EF /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D8E06D602DE7559C00EF3B91 /* libEGL.xcframework */,
-				D8E06D612DE7559C00EF3B91 /* libGLESv2.xcframework */,
+				D8E06D722DE8D31000EF3B91 /* libEGL.xcframework */,
+				D8E06D732DE8D31000EF3B91 /* libGLESv2.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -367,7 +367,6 @@
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
-					"$(SRCROOT)/../library",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.3;
@@ -396,7 +395,6 @@
 					"$(inherited)",
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
-					"$(SRCROOT)/../library",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.3;

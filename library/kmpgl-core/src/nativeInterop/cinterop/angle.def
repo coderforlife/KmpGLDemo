@@ -1,10 +1,6 @@
 headers = libEGL/libEGL.h libGLESv2/libGLESv2.h
-#headerFilter = libEGL/** libGLESv2/**
 package = angle
 language = C
 depends = CFCGTypes CoreFoundation CoreFoundationBase CoreGraphics CoreImage CoreText CoreVideo FileProvider Foundation IOSurface ImageIO Metal ModelIO QuartzCore Security Symbols UIKit darwin posix
-
-compilerOpts.osx = -framework ../libEGL.xcframework/macos-arm64_x86_64/libEGL -framework ../libGLESv2.xcframework/macos-arm64_x86_64/libGLESv2 -I ../include
-compilerOpts.ios_x64 = -framework ../libEGL.xcframework/ios-arm64_x86_64/libEGL -framework ../libGLESv2.xcframework/ios-arm64_x86_64/libGLESv2 -I ../include
-compilerOpts.ios_arm64 = -framework ../libEGL.xcframework/ios-arm64_x86_64/libEGL -framework ../libGLESv2.xcframework/ios-arm64_x86_64/libGLESv2 -I ../include
-compilerOpts.ios_simulator_arm64 = -framework ../libEGL.xcframework/ios-arm64_x86_64-simulator/libEGL -framework ../libGLESv2.xcframework/ios-arm64_x86_64/libGLESv2 -I ../include
+compilerOpts.ios = -F ../ -framework libEGL -framework libGLESv2 -I ../include
+linkerOpts.ios = -F ../ -framework libEGL -framework libGLESv2
