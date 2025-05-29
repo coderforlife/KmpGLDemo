@@ -195,8 +195,13 @@ class ModelViewer(
         logger.i { "resize($width, $height)" }
         this.width = width
         this.height = height
-        gl.viewport(0, 0, width, height)
-        val ratio = width.toFloat() / height
+        val ratio = if (width <= 0 || height <= 0) {
+            gl.viewport(0, 0, 1, 1)
+            1f
+        } else {
+            gl.viewport(0, 0, width, height)
+            width.toFloat() / height
+        }
         if (ratio >= 1f) {
             projectionMatrix.makeOrthographic(-ratio, ratio, 1f, -1f, -1000f, 1000f)
         } else {
