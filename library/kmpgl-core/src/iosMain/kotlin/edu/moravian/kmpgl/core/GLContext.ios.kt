@@ -3,99 +3,70 @@
 
 package edu.moravian.kmpgl.core
 
+import angle.*
 import edu.moravian.kmpgl.util.Bufferable
 import edu.moravian.kmpgl.util.Memory
 import edu.moravian.kmpgl.util.asBuffer
 import edu.moravian.kmpgl.util.of
 import kotlinx.cinterop.*
-import platform.CoreGraphics.CGRect
-import platform.CoreGraphics.CGRectMake
-import platform.CoreGraphics.CGSize
-import platform.EAGL.EAGLContext
-import platform.Foundation.NSBundle
-import platform.GLKit.*
+import platform.CoreFoundation.CFRunLoopRun
+import platform.CoreFoundation.CFRunLoopStop
+import platform.Foundation.NSCondition
+import platform.Foundation.NSDefaultRunLoopMode
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSFileTypeDirectory
+import platform.Foundation.NSRunLoop
 import platform.Foundation.NSThread
-import platform.UIKit.*
-import platform.darwin.NSObject
-import platform.gles3.*
-import platform.glescommon.*
+import platform.Foundation.NSTimer
+import platform.Foundation.performBlock
+import platform.UIKit.UIScreen
+import platform.UIKit.UIViewController
 import platform.posix.CLOCK_UPTIME_RAW
 import platform.posix.clock_gettime_nsec_np
 import kotlin.math.roundToInt
-import kotlin.native.concurrent.ObsoleteWorkersApi
-import kotlin.native.concurrent.TransferMode
-import kotlin.native.concurrent.Worker
 
 
 actual typealias GLView = UIViewController
 actual class GLPlatformContext
 
-@OptIn(ExperimentalUnsignedTypes::class, ObsoleteWorkersApi::class)
-actual open class GLContext: GLContextBase() {
-    inner class ViewControllerDelegate: NSObject(), GLKViewControllerDelegateProtocol {
-        override fun glkViewControllerUpdate(controller: GLKViewController) {
-            // This is for non-rendering updates right before a call to glkView() which is for rendering
-            // However, the first call to glkView() is not preceded by a call to glkViewControllerUpdate()
-        }
 
-        override fun glkViewController(controller: GLKViewController, willPause: Boolean) {
-            //println("glkViewController willPause=$willPause")
-            if (willPause) runAsync(::onPause)
-            else {
-                runAsync {
-                    // Reporting in the change of the drawable width/height is quite unreliable...
-                    onResize(_view!!.drawableWidth.toInt(), _view!!.drawableHeight.toInt())
-                    onResume()
-                }
+@OptIn(ExperimentalForeignApi::class)
+fun tree(dir: String, indent: String = "") {
+    val manager = NSFileManager.defaultManager
+    val contents = manager.contentsOfDirectoryAtPath(dir, null)
+    if (contents == null) {
+        println("${indent}contents is null")
+    } else {
+        for (file in contents) {
+            val attrs = manager.attributesOfItemAtPath("$dir/$file", null)
+            if (attrs?.get("NSFileType") == NSFileTypeDirectory) {
+                println("$indent$file/")
+                tree("$dir/$file", "$indent  ")
+            } else {
+                println("$indent$file")
             }
         }
     }
+}
 
-    @OptIn(ExperimentalForeignApi::class)
-    inner class ViewDelegate: NSObject(), GLKViewDelegateProtocol {
-        override fun glkView(view: GLKView, drawInRect: CValue<CGRect>) {
+
+@OptIn(ExperimentalUnsignedTypes::class)
+actual open class GLContext: GLContextBase() {
+    inner class Listener: MGLViewListener {
+        override fun onLoad(controller: MGLKViewController) { runSyncOrAsync(::onCreate) }
+        override fun onUnload(controller: MGLKViewController) { runSyncOrAsync(::onDispose) }
+        override fun onPause(controller: MGLKViewController) { runSyncOrAsync(::onPause) }
+        override fun onResume(controller: MGLKViewController) { runSyncOrAsync(::onResume) }
+        override fun onResize(controller: MGLKViewController, width: Int, height: Int) { runSyncOrAsync { onResize(width, height) }}
+        override fun onRender(controller: MGLKViewController, rect: Rect, timeSinceLastUpdate: Double) {
             val time = clock_gettime_nsec_np(CLOCK_UPTIME_RAW.toUInt()).toLong()
             runSync { onRender(time) }
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    inner class ViewController(nibName: String? = null, bundle: NSBundle? = null): GLKViewController(nibName, bundle) {
-        private var loaded = false
-
-        // TODO: neither of these methods are particularly good at detecting size changes in the drawable surface...
-        override fun viewWillTransitionToSize(size: CValue<CGSize>, withTransitionCoordinator: UIViewControllerTransitionCoordinatorProtocol) {
-            //println("viewWillTransitionToSize")
-            super.viewWillTransitionToSize(size, withTransitionCoordinator)
-            runAsync { onResize(_view!!.drawableWidth.toInt(), _view!!.drawableHeight.toInt()) }
-        }
-        override fun viewDidLayoutSubviews() {
-            //println("viewDidLayoutSubviews")
-            super.viewDidLayoutSubviews()
-            runSync { onResize(_view!!.drawableWidth.toInt(), _view!!.drawableHeight.toInt()) }
-        }
-
-        override fun loadView() {
-            // do not call super.loadView() to prevent the default view from being created
-            setView(_view)
-        }
-        override fun viewDidLoad() {
-            loaded = true
-            runAsync(::onCreate)
-		}
-        override fun viewDidUnload() {
-            loaded = false
-            runAsync(::onDispose)
-		}
-    }
-
-    private var _viewController: ViewController? = null
-    private var _view: GLKView? = null
+    private var _viewController: MGLKViewController? = null
     actual val view: UIViewController get() = checkNotNull(_viewController)
-
-    // these cannot be stored within the view/view controller since they are not retained there
-    private var viewDelegate = ViewDelegate()
-    private var viewControllerDelegate = ViewControllerDelegate()
+    private val _view get() = _viewController?.glView
 
     actual val isInitialized get() = _viewController !== null
     private var _attributes: GLContextAttributes? = null
@@ -113,22 +84,26 @@ actual open class GLContext: GLContextBase() {
     @Throws(IllegalStateException::class)
     fun doInit(attributes: GLContextAttributes): UIViewController {
         if (isInitialized) { throw IllegalStateException("already initialized GL context") }
-        this._attributes = attributes
-        thread = worker.execute(TransferMode.SAFE, {}, { NSThread.currentThread }).result
-        val context = EAGLContext((attributes.version.value/10).toULong())
-        _view = GLKView(CGRectMake(0.0, 0.0, 1.0, 1.0), context).apply {
-            //if (attributes.desynchronized) { context.multiThreaded = true } // TODO: is this the right meaning?
-            delegate = viewDelegate
-            drawableColorFormat = 0 // RGBA8888 - there is no non-alpha version, but there is an SRGBA8888
-            drawableDepthFormat = if (attributes.depth) 1 /* format16 */ else 0 /* formatNone */
-            drawableStencilFormat = if (attributes.stencil) 1 /* format8 */ else 0 /* formatNone */
-            drawableMultisample = if (attributes.antialias) 1 /* multisample4X */ else 0 /* multisampleNone */
-            _version = attributes.version.value
+        _attributes = attributes
+        _version = attributes.version.value
+        threadCond.lockAndWait { NSThread.detachNewThreadWithBlock(::threadLoop) }
+        return MGLKViewController(
+            context = MGLContext(
+                attributes.version.value / 10,
+                attributes.version.value % 10,
+                Config(
+                    colorFormat = ColorFormat.RGBA8888,
+                    depthFormat = if (attributes.depth) DepthFormat.DF16 else DepthFormat.None,
+                    stencilFormat = if (attributes.stencil) StencilFormat.SF8 else StencilFormat.None,
+                    multisample = if (attributes.antialias) Multisample.X4 else Multisample.None,
+                    retainedBacking = attributes.preserveDrawingBuffer,
+                )
+            ),
+            listener = Listener(),
+        ).also {
+            it.runLoop = runLoop!!
+            _viewController = it
         }
-        _viewController = ViewController().apply {
-            delegate = viewControllerDelegate
-        }
-        return view
     }
 
     actual fun initIfNeeded(attributes: GLContextAttributes, context: GLPlatformContext) = doInitIfNeeded(attributes)
@@ -140,16 +115,19 @@ actual open class GLContext: GLContextBase() {
 
     actual fun dispose() {
         runAsync(::onDispose)
-        _view = null
         _viewController = null
         clearListeners()
+        @Suppress("MISSING_DEPENDENCY_CLASS_IN_EXPRESSION_TYPE")
+        CFRunLoopStop(runLoop?.getCFRunLoop())
+        thread?.cancel()
+        runLoop = null
         thread = null
         _attributes = null
     }
 
     private val uiScale get() = (_view?.window?.screen ?: UIScreen.mainScreen).scale
-    actual val width get() = _view!!.drawableHeight.toInt()
-    actual val height get() = _view!!.drawableWidth.toInt()
+    actual val width get() = _view!!.glLayer.drawableSize.width
+    actual val height get() = _view!!.glLayer.drawableSize.height
     actual val viewWidth get() = _view!!.bounds.useContents { (size.width * uiScale).roundToInt() }
     actual val viewHeight get() = _view!!.bounds.useContents { (size.height * uiScale).roundToInt() }
     actual var viewScale: Float // TODO: these may be backwards * and /
@@ -158,9 +136,9 @@ actual open class GLContext: GLContextBase() {
 
 
     /////////////// Rendering ///////////////
-    actual val isRunning get() = !_viewController!!.isPaused()
-    actual fun start() { _viewController?.setPaused(false) }
-    actual fun stop() { _viewController?.setPaused(true) }
+    actual val isRunning get() = !_viewController!!.paused
+    actual fun start() { _viewController?.resume() }
+    actual fun stop() { _viewController?.pause() }
 
     actual val renderingContinuously get() = !_view!!.enableSetNeedsDisplay
     actual fun renderContinuously() { _view?.enableSetNeedsDisplay = false }
@@ -169,25 +147,40 @@ actual open class GLContext: GLContextBase() {
 
 
     /////////////// Threading ///////////////
-    private val worker = Worker.start(name = "GLContext Thread")
     private var thread: NSThread? = null
+    private var runLoop: NSRunLoop? = null
+    private val threadCond = NSCondition() // use to make sure the thread is started before we try to use it
+    private fun threadLoop() {
+        val runLoop = threadCond.lockAndSignal {
+            thread = NSThread.currentThread.apply { name = "GL Render Thread" }
+            NSRunLoop.currentRunLoop.also { runLoop = it }
+        }
+        // we need to add a timer that does nothing to keep the run loop alive indefinitely
+        val timer = NSTimer.scheduledTimerWithTimeInterval(Double.MAX_VALUE, true) { }
+        runLoop.addTimer(timer, NSDefaultRunLoopMode)
+        CFRunLoopRun() // allows being stopped, unlike the below solution
+        //while (!thread.cancelled && runLoop.runMode(NSDefaultRunLoopMode, NSDate.distantFuture));
+    }
     actual fun isOnRenderThread() = NSThread.currentThread.isEqual(this.thread)
     actual fun runAsync(action: () -> Unit) {
-        worker.execute(TransferMode.UNSAFE, {
-            Pair(_view?.context, action)
-        }) { (ctx, action) ->
-            EAGLContext.setCurrentContext(ctx)
+        runLoop?.performBlock {
+            _viewController?.makeCurrent()
             action()
         }
     }
     actual fun <T : Any> runSync(action: () -> T): T {
-        if (isOnRenderThread()) { return action() }
-        return worker.execute(TransferMode.UNSAFE, {
-            Pair(_view?.context, action)
-        }) { (ctx, action) ->
-            EAGLContext.setCurrentContext(ctx)
-            action()
-        }.result
+        if (isOnRenderThread()) {
+            _viewController?.makeCurrent()
+            return action()
+        }
+
+        // In general we don't want to be calling runSync except from the render thread
+        // It will block the current thread until the action is completed
+        println("GLContext::runSync() called from non-render thread, blocking until action is completed")
+        return runLoop?.performSync(action) ?: throw IllegalStateException("GLContext runLoop is not initialized")
+    }
+    private fun runSyncOrAsync(action: () -> Unit) {
+        if (isOnRenderThread()) { runSync(action) } else { runAsync(action) }
     }
 
 
@@ -222,6 +215,7 @@ actual open class GLContext: GLContextBase() {
         @GLES3 inline fun <T: CPointed> GLSync.asPtr() = this.id.toCPointer<T>()
         inline fun GLValue.toUInt() = id.toUInt()
         inline fun <T: GLValue> GLValues<T>.asUIntArray() = ids.asUIntArray()
+        inline fun <T: CPointed> MemScope.ptr(x: CValuesRef<T>): CPointer<T> = x.getPointer(this)
     }
     internal inline fun checkByteTmpBigLength(len: Int) {
         if (len > byteTmpBig.size)
@@ -272,6 +266,10 @@ actual open class GLContext: GLContextBase() {
     internal inline fun <T> checkGL(minVersion: Int, function: () -> T): T {
         checkGLBase(minVersion)
         return checkError(function())
+    }
+    internal inline fun <T> checkGLWithMem(function: MemScope.() -> T): T {
+        checkGLBase()
+        memScoped { return checkError(function()) }
     }
     private fun formatVersion(version: Int) = "${version / 10}.${version % 10}"
 
