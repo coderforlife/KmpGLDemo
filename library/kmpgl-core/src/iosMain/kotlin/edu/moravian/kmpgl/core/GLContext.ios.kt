@@ -119,7 +119,9 @@ actual open class GLContext: GLContextBase() {
     actual fun dispose() {
         lock.withLock {
             if (!isInitialized) { return }
-            runSync(::onDispose)
+            try {
+                runSync(::onDispose)
+            } catch (e: Throwable) { println("GLContext::dispose() failed, ignoring: ${e.message}") }
             _viewController = null
             clearListeners()
             @Suppress("MISSING_DEPENDENCY_CLASS_IN_EXPRESSION_TYPE")
