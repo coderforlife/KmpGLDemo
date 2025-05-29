@@ -15,6 +15,7 @@ import platform.Foundation.NSCondition
 import platform.Foundation.NSDefaultRunLoopMode
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSFileTypeDirectory
+import platform.Foundation.NSLock
 import platform.Foundation.NSRunLoop
 import platform.Foundation.NSThread
 import platform.Foundation.NSTimer
@@ -54,7 +55,7 @@ fun tree(dir: String, indent: String = "") {
 actual open class GLContext: GLContextBase() {
     inner class Listener: MGLViewListener {
         override fun onLoad(controller: MGLKViewController) { runSyncOrAsync(::onCreate) }
-        override fun onUnload(controller: MGLKViewController) { runSyncOrAsync(::onDispose) }
+        override fun onUnload(controller: MGLKViewController) { dispose() }
         override fun onPause(controller: MGLKViewController) { runSyncOrAsync(::onPause) }
         override fun onResume(controller: MGLKViewController) { runSyncOrAsync(::onResume) }
         override fun onResize(controller: MGLKViewController, width: Int, height: Int) { runSyncOrAsync { onResize(width, height) }}
@@ -83,26 +84,28 @@ actual open class GLContext: GLContextBase() {
     fun doInit() = doInit(GLContextAttributes())
     @Throws(IllegalStateException::class)
     fun doInit(attributes: GLContextAttributes): UIViewController {
-        if (isInitialized) { throw IllegalStateException("already initialized GL context") }
-        _attributes = attributes
-        _version = attributes.version.value
-        threadCond.lockAndWait { NSThread.detachNewThreadWithBlock(::threadLoop) }
-        return MGLKViewController(
-            context = MGLContext(
-                attributes.version.value / 10,
-                attributes.version.value % 10,
-                Config(
-                    colorFormat = ColorFormat.RGBA8888,
-                    depthFormat = if (attributes.depth) DepthFormat.DF16 else DepthFormat.None,
-                    stencilFormat = if (attributes.stencil) StencilFormat.SF8 else StencilFormat.None,
-                    multisample = if (attributes.antialias) Multisample.X4 else Multisample.None,
-                    retainedBacking = attributes.preserveDrawingBuffer,
-                )
-            ),
-            listener = Listener(),
-        ).also {
-            it.runLoop = runLoop!!
-            _viewController = it
+        lock.withLock {
+            if (isInitialized) { throw IllegalStateException("already initialized GL context") }
+            _attributes = attributes
+            _version = attributes.version.value
+            threadCond.lockAndWait { NSThread.detachNewThreadWithBlock(::threadLoop) }
+            return MGLKViewController(
+                context = MGLContext(
+                    attributes.version.value / 10,
+                    attributes.version.value % 10,
+                    Config(
+                        colorFormat = ColorFormat.RGBA8888,
+                        depthFormat = if (attributes.depth) DepthFormat.DF16 else DepthFormat.None,
+                        stencilFormat = if (attributes.stencil) StencilFormat.SF8 else StencilFormat.None,
+                        multisample = if (attributes.antialias) Multisample.X4 else Multisample.None,
+                        retainedBacking = attributes.preserveDrawingBuffer,
+                    )
+                ),
+                listener = Listener(),
+            ).also {
+                it.runLoop = runLoop!!
+                _viewController = it
+            }
         }
     }
 
@@ -114,15 +117,18 @@ actual open class GLContext: GLContextBase() {
     fun doInitIfNeeded(attributes: GLContextAttributes) = _viewController ?: doInit(attributes)
 
     actual fun dispose() {
-        runAsync(::onDispose)
-        _viewController = null
-        clearListeners()
-        @Suppress("MISSING_DEPENDENCY_CLASS_IN_EXPRESSION_TYPE")
-        CFRunLoopStop(runLoop?.getCFRunLoop())
-        thread?.cancel()
-        runLoop = null
-        thread = null
-        _attributes = null
+        lock.withLock {
+            if (!isInitialized) { return }
+            runSync(::onDispose)
+            _viewController = null
+            clearListeners()
+            @Suppress("MISSING_DEPENDENCY_CLASS_IN_EXPRESSION_TYPE")
+            runLoop?.let { CFRunLoopStop(it.getCFRunLoop()) }
+            thread?.cancel()
+            runLoop = null
+            thread = null
+            _attributes = null
+        }
     }
 
     private val uiScale get() = (_view?.window?.screen ?: UIScreen.mainScreen).scale
@@ -140,6 +146,7 @@ actual open class GLContext: GLContextBase() {
     actual fun start() { _viewController?.resume() }
     actual fun stop() { _viewController?.pause() }
 
+    // TODO: these may have the wrong meaning
     actual val renderingContinuously get() = !_view!!.enableSetNeedsDisplay
     actual fun renderContinuously() { _view?.enableSetNeedsDisplay = false }
     actual fun renderOnDemand() { _view?.enableSetNeedsDisplay = true }
@@ -150,6 +157,7 @@ actual open class GLContext: GLContextBase() {
     private var thread: NSThread? = null
     private var runLoop: NSRunLoop? = null
     private val threadCond = NSCondition() // use to make sure the thread is started before we try to use it
+    private val lock = NSLock()
     private fun threadLoop() {
         val runLoop = threadCond.lockAndSignal {
             thread = NSThread.currentThread.apply { name = "GL Render Thread" }
@@ -332,7 +340,7 @@ actual open class GLContext: GLContextBase() {
     @GLES3 actual fun drawRangeElements(mode: Int, start: Int, end: Int, count: Int, type: Int, offset: Int) = checkGL(30) { glDrawRangeElements(mode.toUInt(), start.toUInt(), end.toUInt(), count, type.toUInt(), offset.asPtr<CPointed>()) }
     actual fun finish() = checkGL { glFinish() }
     actual fun flush() = checkGL { glFlush() }
-    
+
     /////////////// Program ///////////////
     actual fun isProgram(program: Int) = checkGL { glIsProgram(program.toUInt()).fromGL() }
     actual fun createProgram() = checkGL { GLProgram(glCreateProgram().toInt()) }
@@ -398,7 +406,7 @@ actual open class GLContext: GLContextBase() {
     @GLES3 actual fun getUniformIndices(program: GLProgram, uniformNames: Array<String>, output: IntArray) = checkGL(30) {
         require(uniformNames.size <= output.size) { "uniformNames and output must have the same size" }
         output.also { memScoped {
-                glGetUniformIndices(program.toUInt(), uniformNames.size, uniformNames.toCStringArray(memScope), it.asUIntArray().refTo(0))
+            glGetUniformIndices(program.toUInt(), uniformNames.size, uniformNames.toCStringArray(memScope), it.asUIntArray().refTo(0))
         } }
     }
     @GLES3 actual fun getActiveUniforms(program: GLProgram, uniformIndices: IntArray, pname: Int, output: IntArray) = checkGL(30) {

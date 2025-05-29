@@ -1,6 +1,7 @@
 package edu.moravian.kmpgl.core
 
 import platform.Foundation.NSCondition
+import platform.Foundation.NSLock
 import platform.Foundation.NSRunLoop
 import platform.Foundation.performBlock
 
@@ -24,7 +25,7 @@ internal fun <T> NSRunLoop.performSync(action: () -> T): T {
 
 // This function locks the NSCondition, executes the block, waits for a signal
 // The block that is executed should asynchronously utilize lockAndSignal()
-internal fun <T> NSCondition.lockAndWait(block: () -> T): T {
+internal inline fun <T> NSCondition.lockAndWait(block: () -> T): T {
     lock()
     try {
         return block()
@@ -36,12 +37,21 @@ internal fun <T> NSCondition.lockAndWait(block: () -> T): T {
 
 // This function locks the NSCondition, executes the block, signals the condition
 // This should be used in conjunction with lockAndWait() to ensure that the condition is signaled after the block is executed
-internal fun <T> NSCondition.lockAndSignal(block: () -> T): T {
+internal inline fun <T> NSCondition.lockAndSignal(block: () -> T): T {
     lock()
     try {
         return block()
     } finally {
         signal()
+        unlock()
+    }
+}
+
+internal inline fun <T> NSLock.withLock(block: () -> T): T {
+    lock()
+    try {
+        return block()
+    } finally {
         unlock()
     }
 }
