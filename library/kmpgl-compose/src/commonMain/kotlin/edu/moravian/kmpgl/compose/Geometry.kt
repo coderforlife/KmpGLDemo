@@ -1,5 +1,3 @@
-@file:OptIn(GLES3OrExtension::class)
-
 package edu.moravian.kmpgl.compose
 
 import edu.moravian.kmpgl.core.BufferTarget
@@ -10,7 +8,6 @@ import edu.moravian.kmpgl.core.GL
 import edu.moravian.kmpgl.core.GLAttributeLocation
 import edu.moravian.kmpgl.core.GLBuffer
 import edu.moravian.kmpgl.core.GLContext
-import edu.moravian.kmpgl.core.GLES3OrExtension
 import edu.moravian.kmpgl.core.GLListener
 import edu.moravian.kmpgl.core.GLProgram
 import edu.moravian.kmpgl.core.GLVertexArrayObject

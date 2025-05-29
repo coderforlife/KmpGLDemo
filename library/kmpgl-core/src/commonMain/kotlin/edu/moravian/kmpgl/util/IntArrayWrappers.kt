@@ -2,7 +2,6 @@
 
 package edu.moravian.kmpgl.util
 
-import edu.moravian.kmpgl.core.GLES3
 import edu.moravian.kmpgl.core.IntDataType
 
 /**
@@ -20,7 +19,6 @@ sealed interface IntArrayWrapper: Iterable<Int> {
     }
 }
 
-@OptIn(GLES3::class)
 fun IntArrayWrapper(
     array: PrimitiveArray,
     type: IntDataType,

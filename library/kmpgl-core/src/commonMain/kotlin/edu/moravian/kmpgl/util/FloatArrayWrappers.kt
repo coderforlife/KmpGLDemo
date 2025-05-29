@@ -3,7 +3,6 @@
 package edu.moravian.kmpgl.util
 
 import edu.moravian.kmpgl.core.DataType
-import edu.moravian.kmpgl.core.GLES3
 
 /**
  * Basic class that acts like a FloatArray but is wrapping any typed array.
@@ -21,7 +20,6 @@ sealed interface FloatArrayWrapper: Iterable<Float> {
     }
 }
 
-@OptIn(GLES3::class)
 fun FloatArrayWrapper(
     array: PrimitiveArray,
     type: DataType,

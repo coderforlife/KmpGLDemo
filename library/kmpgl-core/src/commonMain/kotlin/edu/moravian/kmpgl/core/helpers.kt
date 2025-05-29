@@ -28,7 +28,6 @@ import edu.moravian.kmpgl.util.asBufferable
 inline val GLContext.hasFragmentShaderDerivatives get() = version >= 30 || extensions[OES_standard_derivatives::class] !== null
 
 // Instanced Arrays
-@OptIn(GLES3OrExtension::class)
 inline val GLContext.hasInstancedArrays get() = version >= 30 || extensions[InstancedArraysExtension::class] !== null
 @GLES3OrExtension
 inline fun GLContext.drawArraysInstanced(mode: Int, first: Int, count: Int, instanceCount: Int) =
@@ -44,7 +43,6 @@ inline fun GLContext.vertexAttribDivisor(index: Int, divisor: Int) =
     else extensions[InstancedArraysExtension::class]!!.vertexAttribDivisor(index, divisor)
 
 // Vertex Array Objects
-@OptIn(GLES3OrExtension::class)
 inline val GLContext.hasVertexArrayObjects get() = version >= 30 || extensions[OES_vertex_array_object::class] !== null
 @GLES3OrExtension
 inline fun GLContext.isVertexArray(array: Int) =

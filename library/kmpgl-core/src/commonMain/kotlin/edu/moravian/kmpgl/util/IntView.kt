@@ -2,7 +2,6 @@
 
 package edu.moravian.kmpgl.util
 
-import edu.moravian.kmpgl.core.GLES3
 import edu.moravian.kmpgl.core.IntDataType
 
 /**
@@ -122,7 +121,6 @@ private class IntMemoryViewFromUInt(val memory: Memory): IntView() {
     override fun subList(fromIndex: Int, toIndex: Int) = IntMemoryViewFromUInt(memory.slice(fromIndex*UInt.SIZE_BYTES, (toIndex-fromIndex)*UInt.SIZE_BYTES))
 }
 
-@OptIn(GLES3::class)
 private fun intViewFromMemory(
     data: Memory,
     type: IntDataType,
@@ -140,7 +138,6 @@ private fun intViewFromMemory(
     }
 }
 
-@OptIn(GLES3::class)
 private fun intViewFromArray(
     data: PrimitiveArray,
     type: IntDataType,

@@ -3,7 +3,6 @@
 package edu.moravian.kmpgl.util
 
 import edu.moravian.kmpgl.core.DataType
-import edu.moravian.kmpgl.core.GLES3
 
 /**
  * A view of a list of floats. The underlying data could be in an array or memory chunk.
@@ -188,7 +187,6 @@ private class FloatMemoryViewFromUIntNormalized(val memory: Memory): FloatView()
     override fun subList(fromIndex: Int, toIndex: Int) = FloatMemoryViewFromUIntNormalized(memory.slice(fromIndex, toIndex-fromIndex))
 }
 
-@OptIn(GLES3::class)
 private fun floatViewFromMemory(
     data: Memory,
     type: DataType,
