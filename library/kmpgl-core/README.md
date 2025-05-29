@@ -1,13 +1,13 @@
-KMM-GL
+KMP-GL
 ======
 
 Module that provides multiplatform access to OpenGL ES. Supports Android and iOS but could support additional platforms as well.
 
 It aims to mimic a WebGLRenderingContext interface, although there are significant differences. See the `GLContext` class documentation for more information.
 
-On Android this wraps `GLSurfaceView`. On iOS this wraps `GLKView`.
+On Android this wraps `GLSurfaceView`. On iOS this wraps a custom Metal-ANGLE based `GLKView`.
 
-The main class is `GLContext` for OpenGL ES 2.0 (i.e. WebGL) support or `GLContext30` for OpenGL ES 3.0 (i.e. WebGL2) support. Within those classes, all OpenGL functions are available but drop the `gl` prefix. The context object must be initialized on a specific platform. The initialization accepts many attributes during creation (e.g. `alpha` or `antialias` options).
+The main class is `GLContext` for OpenGL ES 2.0 (i.e. WebGL) support or `GLContext30` for OpenGL ES 3.x (i.e. WebGL2) support. Within those classes, all OpenGL functions are available but drop the `gl` prefix. The context object must be initialized on a specific platform. The initialization accepts many attributes during creation (e.g. `alpha` or `antialias` options).
 
 The context object creates and manages the view (i.e. canvas) instead of it being created outside of the class (use the `init()` or `initIfNeeded()` methods with a `GLPlatformContext` object that contains platform-specific data).
 
@@ -17,11 +17,11 @@ You must run things that interact with GL on the rendering thread. You can use `
 
 No GL constants are defined within the context, instead they are available in the singleton object `GL`.
 
-There is no `getParameter()` but instead type-specific  functions. Parameters like `border` that must always be a specific value have been removed or defaulted; postfix argument types like "i" or "f" sometimes dropped from the names.
+There is no `getParameter()` but instead type-specific functions. Parameters like `border` that must always be a specific value have been removed or defaulted; postfix argument types like "i" or "f" sometimes dropped from the names.
 
 On any system, the biggest task it to implement a `GLListener` instance. This is where all the logic for the 3D program will be implemented (primarily in `create()`/`recreate()` for loading resources and `render()` to draw a frame).
 
-A `GLContext` object can only be initialized once, but can be reused (the view can be moved to another layout for example). The context and view can only be used once at a time in a particular layout though, so if additional views are needed in the same layout, additional contexts will be required.
+A `GLContext` object can only be initialized once, but can be reused (the view can be moved to another layout for example). The context and view can only be used one at a time in a particular layout though, so if additional views are needed in the same layout, additional contexts will be required.
 
 Android
 -------
@@ -47,7 +47,7 @@ Add the following wrapper class:
 ```swift
 import SwiftUI
 import UIKit
-import kmm_gl
+import kmp_gl
 struct GLView: UIViewControllerRepresentable {
     let glContext = GLContext()
     func makeUIViewController(context: Context) -> UIViewController {
