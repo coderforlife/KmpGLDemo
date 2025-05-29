@@ -34,7 +34,6 @@ class GLExtensions internal constructor(val gl: GLContext): Map<String, Extensio
         clazz in extByClass || get(clazz) !== null
 
     override inline val size: Int get() = available.size
-    @Suppress("ReplaceSizeZeroCheckWithIsEmpty")
     override inline fun isEmpty() = size == 0
     override inline val keys: Set<String> get() = available
     override fun containsKey(key: String) = key in available
@@ -97,7 +96,6 @@ class GLExtensions internal constructor(val gl: GLContext): Map<String, Extensio
         get("EXT_multisampled_render_to_texture") ?: get("IMG_multisampled_render_to_texture") // IMG_multisampled_render_to_texture: 1/21
     }
 
-    @OptIn(GLES3OrExtension::class)
     companion object {
         private val registry = IsoMutableMap<String, ExtensionInit>()
         private val groups = IsoMutableMap<KClass<*>, Array<out String>>()
@@ -175,7 +173,6 @@ class OES_element_index_uint internal constructor(gl: GLContext): Extension(gl) 
     companion object { const val name = "OES_element_index_uint" }
 }
 
-// iOS supports EXT one
 @GLES3OrExtension
 sealed class InstancedArraysExtension(gl: GLContext): Extension(gl) {
     val VERTEX_ATTRIB_ARRAY_DIVISOR = 0x88FE // GL.VERTEX_ATTRIB_ARRAY_DIVISOR
@@ -299,7 +296,6 @@ class EXT_color_buffer_float internal constructor(gl: GLContext): Extension(gl) 
     companion object { const val name = "EXT_color_buffer_float" }
 }
 
-// None of these are supported on iOS
 @GLES3OrExtension
 sealed class DrawBuffersExtension(gl: GLContext): Extension(gl) {
     val MAX_COLOR_ATTACHMENTS = 0x8CDF // GL.MAX_COLOR_ATTACHMENTS

@@ -4,6 +4,7 @@ package edu.moravian.kmpgl.core
 
 import android.opengl.GLES20.GL_FALSE
 
+@GLES3OrExtension
 internal actual class ANGLE_instanced_arrays_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun drawArraysInstancedANGLE(mode: Int, first: Int, count: Int, instanceCount: Int) = gl.checkGL { glDrawArraysInstancedANGLE(mode, first, count, instanceCount) }
@@ -13,6 +14,7 @@ internal actual class ANGLE_instanced_arrays_native actual constructor(private v
     actual fun vertexAttribDivisorANGLE(index: Int, divisor: Int) = gl.checkGL { glVertexAttribDivisorANGLE(index, divisor) }
     private external fun glVertexAttribDivisorANGLE(index: Int, divisor: Int)
 }
+@GLES3OrExtension
 internal actual class EXT_instanced_arrays_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun drawArraysInstancedEXT(mode: Int, first: Int, count: Int, instanceCount: Int) = gl.checkGL { glDrawArraysInstancedEXT(mode, first, count, instanceCount) }
@@ -22,6 +24,7 @@ internal actual class EXT_instanced_arrays_native actual constructor(private val
     actual fun vertexAttribDivisorEXT(index: Int, divisor: Int) = gl.checkGL { glVertexAttribDivisorEXT(index, divisor) }
     private external fun glVertexAttribDivisorEXT(index: Int, divisor: Int)
 }
+@GLES3OrExtension
 internal actual class NV_instanced_arrays_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun drawArraysInstancedNV(mode: Int, first: Int, count: Int, instanceCount: Int) = gl.checkGL { glDrawArraysInstancedNV(mode, first, count, instanceCount) }
@@ -32,6 +35,7 @@ internal actual class NV_instanced_arrays_native actual constructor(private val 
     private external fun glVertexAttribDivisorNV(index: Int, divisor: Int)
 }
 
+@GLES3OrExtension
 internal actual class OES_vertex_array_object_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun genVertexArrayOES() = gl.checkGL { glGenVertexArraysOES(1, gl.intTmp); GLVertexArrayObject(gl.intTmp[0]) }
@@ -46,27 +50,32 @@ internal actual class OES_vertex_array_object_native actual constructor(private 
     private external fun glBindVertexArrayOES(array: Int)
 }
 
+@GLES3OrExtension
 internal actual class EXT_draw_buffers_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun drawBuffersEXT(bufs: IntArray) = gl.checkGL { glDrawBuffersEXT(bufs) }
     private external fun glDrawBuffersEXT(bufs: IntArray)
 }
+@GLES3OrExtension
 internal actual class NV_draw_buffers_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun drawBuffersNV(bufs: IntArray) = gl.checkGL { glDrawBuffersNV(bufs) }
     private external fun glDrawBuffersNV(bufs: IntArray)
 }
 
+@GLES3OrExtension
 internal actual class ANGLE_framebuffer_multisample_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun renderbufferStorageMultisampleANGLE(target: Int, samples: Int, internalformat: Int, width: Int, height: Int) = gl.checkGL { glRenderbufferStorageMultisampleANGLE(target, samples, internalformat, width, height) }
     private external fun glRenderbufferStorageMultisampleANGLE(target: Int, samples: Int, internalformat: Int, width: Int, height: Int)
 }
+@GLES3OrExtension
 internal actual class NV_framebuffer_multisample_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun renderbufferStorageMultisampleNV(target: Int, samples: Int, internalformat: Int, width: Int, height: Int) = gl.checkGL { glRenderbufferStorageMultisampleNV(target, samples, internalformat, width, height) }
     private external fun glRenderbufferStorageMultisampleNV(target: Int, samples: Int, internalformat: Int, width: Int, height: Int)
 }
+@GLES3OrExtension
 internal actual class APPLE_framebuffer_multisample_native actual constructor(private val gl: GLContext) {
     init { System.loadLibrary("opengl-extensions") }
     actual fun renderbufferStorageMultisampleAPPLE(target: Int, samples: Int, internalformat: Int, width: Int, height: Int) = gl.checkGL { glRenderbufferStorageMultisampleAPPLE(target, samples, internalformat, width, height) }

@@ -6,13 +6,13 @@ import kotlin.jvm.JvmField
 import kotlin.jvm.JvmInline
 import kotlin.math.max
 
-@RequiresOptIn("Not all systems support GLES30.", level = RequiresOptIn.Level.WARNING)
+//@RequiresOptIn("Not all systems support GLES30.", level = RequiresOptIn.Level.WARNING) - 99%+ of devices support GLES30
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.CONSTRUCTOR,
     AnnotationTarget.FUNCTION, AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS,
     AnnotationTarget.LOCAL_VARIABLE)
 annotation class GLES3
 
-@RequiresOptIn("Not all systems support GLES30 or have the proper extensions.", level = RequiresOptIn.Level.WARNING)
+//@RequiresOptIn("Not all systems support GLES30 or have the proper extensions.", level = RequiresOptIn.Level.WARNING) - 99%+ of devices support GLES30
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.CONSTRUCTOR,
     AnnotationTarget.FUNCTION, AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS,
     AnnotationTarget.LOCAL_VARIABLE)
@@ -29,17 +29,13 @@ data class GLContextAttributes(
     @JvmField val stencil: Boolean = false, // request stencil buffer of at least 8 bits
     @JvmField val antialias: Boolean = true, // enables 4x multisample rendering
 
-    @JvmField val preserveDrawingBuffer: Boolean = false, // don't destroy drawing buffer on swap // TODO: not used in iOS
-    @JvmField val failIfMajorPerformanceCaveat: Boolean = false, // TODO: not used in iOS
-
-    @JvmField val desynchronized: Boolean = false, // TODO: no effect on Android (always true?), not quite the same as WebGL on iOS (at least I am not sure, it uses EAGLContext.multiThreaded)
-    //@JvmField val premultipliedAlpha: Boolean = true, // TODO: must always be true I believe
-    //@JvmField val powerPreference: String = "default", // not available, possibly use renderOnDemand instead
+    @JvmField val preserveDrawingBuffer: Boolean = false, // don't destroy drawing buffer on swap
+    @JvmField val failIfMajorPerformanceCaveat: Boolean = false, // not used in iOS
 )
 
 enum class GLVersion(@JvmField val value: Int) {
     // OpenGL ES 2.0 ~= WebGL 1, OpenGL ES 3.0 ~= WebGL 2
-    GLES_2_0(20), GLES_3_0(30), GLES_3_1(31),
+    GLES_2_0(20), GLES_3_0(30), GLES_3_1(31), GLES_3_2(32);
 }
 
 

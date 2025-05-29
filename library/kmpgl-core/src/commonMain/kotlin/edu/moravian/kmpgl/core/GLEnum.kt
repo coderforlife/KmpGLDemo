@@ -455,7 +455,7 @@ enum class VertexAttribParam(@JvmField val value: Int) {
     //CURRENT_VERTEX_ATTRIB(GL.CURRENT_VERTEX_ATTRIB), // 4 elements, floats, ints, or uints
     //POINTER(GL.VERTEX_ATTRIB_ARRAY_POINTER), // pointer; only with glGetVertexAttribPointerv
     @GLES3 INTEGER(GL.VERTEX_ATTRIB_ARRAY_INTEGER), // bool
-    @OptIn(GLES3::class) @GLES3OrExtension DIVISOR(GL.VERTEX_ATTRIB_ARRAY_DIVISOR);
+    @GLES3OrExtension DIVISOR(GL.VERTEX_ATTRIB_ARRAY_DIVISOR);
     companion object { fun from(value: Int) = entries.first { it.value == value } }
 }
 
@@ -616,7 +616,7 @@ enum class FramebufferAttachmentComponentType(@JvmField val value: Int) {
 
 @GLES3OrExtension
 enum class ColorEncoding(@JvmField val value: Int) {
-    LINEAR(GL.LINEAR), @OptIn(GLES3::class) SRGB(GL.SRGB);
+    LINEAR(GL.LINEAR), SRGB(GL.SRGB);
     companion object { fun from(value: Int) = entries.first { it.value == value } }
 }
 
