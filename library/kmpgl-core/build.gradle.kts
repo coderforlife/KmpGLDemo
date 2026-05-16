@@ -60,6 +60,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++11"
+                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
             }
         }
     }
